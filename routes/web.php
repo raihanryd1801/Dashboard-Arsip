@@ -22,22 +22,24 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/arsip', [DashboardController::class, 'arsip']);
     Route::get('/arsip/{kategori}', [DashboardController::class, 'kategori']);
     
-    // Upload Dokumen
+// Upload Dokumen
     Route::post('/upload-dokumen', function (Request $request) {
         $request->validate([
             'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx|max:20480',
             'kategori' => 'required',
-            'judul' => 'required'
+            'judul' => 'required',
+            'tanggal_dokumen' => 'required|date' // Validasi tanggal
         ]);
         
         $file = $request->file('file');
         $filename = time() . '_' . $file->getClientOriginalName();
         $file->move(public_path('dokumen'), $filename);
         
-        // Simpan ke DB
+        // Simpan ke DB (Update bagian ini)
         Dokumen::create([
             'kategori' => $request->kategori,
             'judul' => $request->judul,
+            'tanggal_dokumen' => $request->tanggal_dokumen, // Simpan tanggal dokumen
             'file_path' => 'dokumen/' . $filename
         ]);
 
@@ -53,7 +55,7 @@ Route::middleware(['auth'])->group(function () {
         $laporan = Laporan::firstOrCreate(['bulan' => $bulan_sekarang], ['jumlah' => 0]);
         $laporan->increment('jumlah');
         
-        return back()->with('success', 'Dokumen berhasil diupload & dicatat!');
+        return back()->with('success', 'Dokumen berhasil diupload!');
     });
 
     // Hapus Dokumen
