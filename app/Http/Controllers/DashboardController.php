@@ -12,10 +12,8 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Ambil input pencarian riwayat dokumen
         $search = $request->input('search');
 
-        // 2. Query log dengan fitur pencarian & pagination
         $logs = ActivityLog::query()
             ->when($search, function ($query, $search) {
                 return $query->where('judul', 'like', "%{$search}%")
@@ -24,7 +22,6 @@ class DashboardController extends Controller
             ->latest()
             ->paginate(10);
 
-        // 3. Ambil data sesi aktif langsung dari tabel 'sessions' bawaan Laravel
         $activeSessions = DB::table('sessions')
             ->leftJoin('users', 'sessions.user_id', '=', 'users.id')
             ->select('sessions.ip_address', 'sessions.last_activity', 'users.name', 'users.email')
@@ -32,13 +29,14 @@ class DashboardController extends Controller
 
         $user_online = $activeSessions->count();
 
-        // 4. Data untuk Pie Chart Kategori Dokumen
         $kategoriData = Dokumen::select('kategori', DB::raw('count(*) as total'))
             ->groupBy('kategori')
             ->get();
 
-        // 5. Data untuk Pie Chart berdasarkan IP Address dari tabel sessions
         $ipData = $activeSessions->groupBy('ip_address')->map->count();
+
+        // Ambil daftar kategori unik untuk sidebar dinamis
+        $menu_kategori = Dokumen::select('kategori')->distinct()->pluck('kategori');
 
         return view('dashboard', [
             'label_bulan'    => Laporan::pluck('bulan'),
@@ -51,18 +49,42 @@ class DashboardController extends Controller
             'activeSessions' => $activeSessions,
             'ip_labels'      => $ipData->keys(),
             'ip_data'        => $ipData->values(),
+            'menu_kategori'  => $menu_kategori
         ]);
     }
 
     public function arsip()
     {
-        $dokumen = Dokumen::all();
-        $laporan = Laporan::all();
-        
+        return $this->tampilkanArsip('Pusat Dokumen', '');
+    }
+
+    // Fungsi penangkap rute dinamis kategori dokumen di sidebar
+    public function kategori($nama_kategori)
+    {
+        return $this->tampilkanArsip($nama_kategori, $nama_kategori);
+    }
+
+    private function tampilkanArsip($title, $kategori)
+    {
+        if ($kategori != '') {
+            $dokumen = Dokumen::where('kategori', 'LIKE', "%{$kategori}%")->latest()->get();
+        } else {
+            $dokumen = Dokumen::latest()->get();
+        }
+
+        $kategoriData = Dokumen::select('kategori', DB::raw('count(*) as total'))
+            ->groupBy('kategori')
+            ->get();
+
+        // Ambil daftar kategori unik untuk sidebar dinamis
+        $menu_kategori = Dokumen::select('kategori')->distinct()->pluck('kategori');
+
         return view('arsip', [
-            'dokumen'     => $dokumen,
-            'label_bulan' => $laporan->pluck('bulan'),
-            'data_jumlah' => $laporan->pluck('jumlah')
+            'dokumen'       => $dokumen,
+            'page_title'    => $title,
+            'chart_labels'  => $kategoriData->pluck('kategori'),
+            'chart_data'    => $kategoriData->pluck('total'),
+            'menu_kategori' => $menu_kategori
         ]);
     }
 }

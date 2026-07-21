@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #334155; }
-        .sidebar { background: #0f172a; min-height: 100vh; color: #fff; }
+        .sidebar { background: #0f172a; min-height: 100vh; color: #fff; position: sticky; top: 0; }
         .nav-link { color: #94a3b8; padding: 12px 20px; text-decoration: none; display: block; border-radius: 8px; margin-bottom: 5px; }
         .nav-link:hover, .nav-link.active { color: #fff; background: #1e293b; }
         .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
@@ -18,14 +18,19 @@
 <body>
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar -->
+        <!-- Sidebar Dinamis -->
         <div class="col-md-2 p-3 sidebar">
-            <h5 class="py-3 text-center">NOC Portal</h5>
+            <h5 class="py-3 text-center">Dashboard Menu</h5>
             <nav class="nav flex-column">
-                <a class="nav-link active" href="/">Dashboard</a>
-                <a class="nav-link" href="/arsip">Arsip Dokumen</a>
-                <a class="nav-link" href="/sop">SOP Unit</a>
-                <a class="nav-link" href="/loca">LOCA</a>
+                <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/">Dashboard</a>
+                <a class="nav-link {{ request()->is('arsip') ? 'active' : '' }}" href="/arsip">Pusat Dokumen</a>
+                
+                <!-- Looping Menu Otomatis Berdasarkan Database -->
+                @foreach($menu_kategori as $menu)
+                    <a class="nav-link {{ request()->is('arsip/' . $menu) ? 'active' : '' }}" href="/arsip/{{ $menu }}">
+                        {{ $menu }}
+                    </a>
+                @endforeach
             </nav>
         </div>
 
@@ -53,7 +58,7 @@
                 </div>
             </div>
 
-            <!-- BARIS PIE CHARTS (Kategori Dokumen & IP Akses) -->
+            <!-- BARIS PIE CHARTS -->
             <div class="row g-4 mt-2">
                 <div class="col-md-6">
                     <div class="card p-4">
@@ -147,7 +152,6 @@
 </div>
 
 <script>
-    // 1. Grafik Tren Bulanan (Line Chart)
     const ctx = document.getElementById('grafikBulanan').getContext('2d');
     const labels = {!! json_encode($label_bulan) !!};
     const dataJumlah = {!! json_encode($data_jumlah) !!};
@@ -169,14 +173,11 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { 
-                    y: { beginAtZero: true, ticks: { precision: 0 } } 
-                } 
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } 
             } 
         });
     }
 
-    // 2. Pie Chart Kategori Dokumen (Doughnut)
     const ctxPie = document.getElementById('pieChartKategori').getContext('2d');
     const pieLabels = {!! json_encode($pie_labels) !!};
     const pieData = {!! json_encode($pie_data) !!};
@@ -196,7 +197,6 @@
         });
     }
 
-    // 3. Pie Chart IP Address (Doughnut)
     const ctxIP = document.getElementById('pieChartIP').getContext('2d');
     const ipLabels = {!! json_encode($ip_labels) !!};
     const ipData = {!! json_encode($ip_data) !!};

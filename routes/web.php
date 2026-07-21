@@ -17,7 +17,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // --- Rute Terlindungi ---
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [DashboardController::class, 'index']);
+    
+    // Rute Menu Arsip Utama & Rute Dinamis Kategori Sidebar
     Route::get('/arsip', [DashboardController::class, 'arsip']);
+    Route::get('/arsip/{kategori}', [DashboardController::class, 'kategori']);
     
     // Upload Dokumen
     Route::post('/upload-dokumen', function (Request $request) {
