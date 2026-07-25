@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Dokumen extends Model
 {
     protected $fillable = [
+        'perusahaan', // <--- Tambahkan ini
         'kategori', 
         'judul', 
         'file_path', 
