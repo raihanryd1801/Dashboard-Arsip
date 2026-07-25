@@ -27,29 +27,27 @@ Sistem manajemen arsip dokumen berbasis web untuk mengelola dokumen dari **multi
 ### 🏠 Halaman Dashboard
 Dashboard menampilkan statistik total sesi, tren laporan bulanan, distribusi dokumen per perusahaan, dan riwayat aktivitas.
 
-![Dashboard](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/blob/main/public/screenshots/dashboard.png)
+![Dashboard](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/main/public/screenshots/dashboard.png)
 
 ### 📂 Halaman Manajemen Arsip
 Halaman ini adalah pusat pengelolaan dokumen. Kamu bisa upload, filter, dan kelola dokumen per kategori.
 
-![Halaman Arsip](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/blob/main/public/screenshots/arsip.png)
-![Halaman Arsip2](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/blob/main/public/screenshots/arsip.png)
+![Halaman Arsip](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/main/public/screenshots/arsip.png)
+![Halaman Arsip2](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/main/public/screenshots/arsip2.png)
 
 ### 🛡️ Firewall & Sesi
 Kelola whitelist IP dan pantau sesi aktif pengguna. Fitur "Drop" dapat menendang pengguna yang mencurigakan.
 
-![Firewall](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/blob/main/public/screenshots/firewall.png)
+![Firewall](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/main/public/screenshots/firewall.png)
 
 ### 🖼️ Image to PDF Converter
 Konversi gambar menjadi PDF bersih tanpa watermark atau tulisan tambahan.
 
-![Converter](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/blob/main/public/screenshots/converter.png)
+![Converter](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/main/public/screenshots/converter.png)
 
 ### 🔐 Halaman Login
 
-![Login](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/blob/main/public/screenshots/login.png)
-
----
+![Login](https://raw.githubusercontent.com/raihanryd1801/Dashboard-Arsip-MultiCompany2/main/public/screenshots/login.png)
 
 ## ⚙️ Persyaratan Sistem
 
