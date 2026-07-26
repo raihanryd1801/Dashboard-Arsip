@@ -101,7 +101,9 @@ php /var/www/html/finance/artisan serve --host=0.0.0.0 --port=8005
 
 Setelah menjalankan php artisan migrate --seed, kamu bisa login dengan akun berikut:
 
+```bash
 php artisan tinker --execute="\App\Models\User::create(['name' => 'Admin Fans Media', 'email' => 'admin@test.co.id', 'password' => bcrypt('password123'), 'jabatan' => 'Admin']);"
+```
 
 Email    : admin@test.co.id
 Password : password123
