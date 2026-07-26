@@ -66,7 +66,7 @@ Konversi gambar menjadi PDF bersih tanpa watermark atau tulisan tambahan.
 1. Clone Repository
 
 ```bash
-git clone https://github.com/raihanryd01/noc-arsip.git
+git clone https://github.com/raihanryd1801/Dashboard-Arsip-MultiCompany2.git
 cd noc-arsip
 
 2. Install Dependencies PHP
@@ -94,13 +94,17 @@ php artisan migrate --seed
 php artisan storage:link
 
 8. Jalankan Server Development
-php artisan serve
+php /var/www/html/finance/artisan serve --host=0.0.0.0 --port=8005
 
 🔑 Akun Default
+
+
 Setelah menjalankan php artisan migrate --seed, kamu bisa login dengan akun berikut:
 
-Role	Email	Password
-Admin	admin@dankom.com	password
+php artisan tinker --execute="\App\Models\User::create(['name' => 'Admin Fans Media', 'email' => 'admin@test.co.id', 'password' => bcrypt('password123'), 'jabatan' => 'Admin']);"
+
+Email    : admin@test.co.id
+Password : password123
 
 Struktur Direktori Penting : 
 
