@@ -27,11 +27,7 @@ Route::middleware(['auth', IpFirewall::class])->group(function () {
     Route::post('/update-profile', [AuthController::class, 'updateProfile']);
 
     // Tambahkan rute ini untuk menangani update profil
-    Route::middleware(['auth'])->group(function () {
-    Route::put('/profile/update', [AuthController::class, 'updateProfile']);
-    // Atau jika form HTML abang menggunakan method POST biasa:
-    // Route::post('/profile/update', [AuthController::class, 'updateProfile']);
-});
+   
     // 3. RUTE ARSIP MULTI-COMPANY
     Route::get('/arsip', [DashboardController::class, 'arsip']);
     Route::get('/arsip/{perusahaan}/{kategori}', [DashboardController::class, 'arsipPerusahaan']);
@@ -128,5 +124,58 @@ Route::middleware(['auth', IpFirewall::class])->group(function () {
         }
         return abort(404, 'File tidak ditemukan di server.');
     })->where('filename', '.*');
+
+    // --- 12. UPDATE SETTING FAIL2BAN ---
+    Route::post('/firewall/fail2ban', function (Request $request) {
+        $request->validate([
+            'maxretry' => 'required|numeric',
+            'bantime' => 'required|numeric',
+            'ignoreip' => 'nullable|string'
+        ]);
+
+        // Simpan ke Database
+        $setting = \App\Models\Fail2banSetting::first();
+        if (!$setting) {
+            $setting = new \App\Models\Fail2banSetting();
+        }
+        $setting->maxretry = $request->maxretry;
+        $setting->bantime = $request->bantime;
+        $setting->ignoreip = $request->ignoreip;
+        $setting->save();
+
+        // Buat format teks untuk file konfigurasi Fail2ban (Sesuai racikan NOC)
+        $logPath = storage_path('logs/laravel.log'); 
+        
+        $config = "[laravel-auth]\n";
+        $config .= "enabled = true\n";
+        $config .= "filter = laravel-auth\n";
+        $config .= "backend = auto\n\n";
+        
+        $config .= "logpath = {$logPath}\n\n";
+        
+        $config .= "port = 8004\n";
+        $config .= "action = iptables-multiport[name=laravel-auth, port=\"8004\", protocol=tcp]\n\n";
+        
+        $config .= "maxretry = {$request->maxretry}\n";
+        $config .= "findtime = 600\n";
+        $config .= "bantime = {$request->bantime}\n";
+        
+        // Atur ignoreip, default ke 127.0.0.0 jika kosong
+        if($request->ignoreip) {
+            $config .= "ignoreip = {$request->ignoreip}\n";
+        } else {
+            $config .= "ignoreip = 127.0.0.0\n";
+        }
+
+        // Simpan file config ke folder sementara di Laravel
+        $tempPath = storage_path('app/laravel-auth.local');
+        file_put_contents($tempPath, $config);
+
+        // Eksekusi perintah Linux untuk memindahkan file & restart service
+        shell_exec("sudo cp {$tempPath} /etc/fail2ban/jail.d/laravel-auth.local");
+        shell_exec("sudo systemctl restart fail2ban");
+
+        return back()->with('success', 'Konfigurasi Fail2ban berhasil di-update dengan Port 8004 dan service telah di-restart!');
+    });
 
 });

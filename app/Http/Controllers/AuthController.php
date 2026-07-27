@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;      // <-- Wajib ditambahkan
+use App\Models\ActivityLog;              // <-- Wajib ditambahkan
 
 class AuthController extends Controller
 {
@@ -16,21 +18,39 @@ class AuthController extends Controller
 
     public function authenticate(Request $request)
     {
-        // 1. Validasi inputan harus diisi
         $credentials = $request->validate([
-            'email' => ['required'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        // 2. Cek apakah email dan password cocok di database
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('/'); // Jika benar, masuk ke dashboard
+            return redirect()->intended('/');
         }
 
-        // 3. JIKA SALAH: Kembalikan ke halaman login dengan membawa pesan 'error'
-        return back()->with('error', 'Email atau Password yang Anda masukkan salah!');
+        // --- AWAL KODE LOG GAGAL LOGIN ---
+        $ipAddress = $request->ip();
+        $emailAttempt = $request->email;
+
+        // 1. Catat ke File laravel.log (KHUSUS UNTUK DIBACA FAIL2BAN)
+        // Pola teks ini yang nanti dicari oleh regex Fail2ban
+        Log::warning("[AUTH-FAILED] Failed login attempt from IP: {$ipAddress} for email: {$emailAttempt}");
+
+        // 2. Catat ke Database (Untuk tampil di Dashboard NOC)
+        ActivityLog::create([
+            'aksi' => 'WARNING', 
+            'kategori' => 'Security Alert', 
+            'judul' => "Gagal login dari IP: {$ipAddress} (Email: {$emailAttempt})"
+        ]);
+        // --- AKHIR KODE LOG GAGAL LOGIN ---
+
+        return back()->withErrors([
+            'email' => 'Kredensial Email atau Password yang diberikan Salah.',
+        ])->onlyInput('email');
     }
+
+    // ... (fungsi logout & updateProfile biarkan saja) ...
+
 
     // Fungsi untuk proses logout
     public function logout(Request $request)
@@ -65,5 +85,6 @@ class AuthController extends Controller
 
         return back()->with('success', 'Profil dan Password berhasil diperbarui!');
     }
+    
 }
 

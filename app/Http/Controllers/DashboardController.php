@@ -152,15 +152,21 @@ class DashboardController extends Controller
     {
         $menu_sidebar = $this->getMenuSidebar();
         
-        $activeSessions = DB::table('sessions')
+        $activeSessions = \Illuminate\Support\Facades\DB::table('sessions')
             ->leftJoin('users', 'sessions.user_id', '=', 'users.id')
             ->select('sessions.id as session_id', 'sessions.ip_address', 'sessions.last_activity', 'users.name')
             ->orderBy('sessions.last_activity', 'desc')
             ->get();
             
         $firewallIps = \App\Models\FirewallIp::latest()->get();
+        
+        // Ambil setting Fail2ban (Buat default jika belum ada)
+        $fail2ban = \App\Models\Fail2banSetting::firstOrCreate(
+            ['id' => 1],
+            ['maxretry' => 3, 'bantime' => 3600, 'ignoreip' => '127.0.0.1']
+        );
 
-        return view('firewall', compact('menu_sidebar', 'activeSessions', 'firewallIps'));
+        return view('firewall', compact('menu_sidebar', 'activeSessions', 'firewallIps', 'fail2ban'));
     }
 
     public function createArsip()

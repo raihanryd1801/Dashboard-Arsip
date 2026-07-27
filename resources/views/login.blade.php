@@ -88,11 +88,13 @@
         <!-- BODY FORM LOGIN -->
         <div class="card-body p-4 p-md-5">
             <!-- Notifikasi Error jika salah password -->
-            @if(session('error'))
-                <div class="alert alert-danger small p-2 text-center rounded-3">
-                    {{ session('error') }}
+            <!-- Notifikasi Error jika salah password -->
+            @error('email')
+                <div class="alert alert-danger small p-2 text-center rounded-3 fw-bold">
+                    Alert {{ $message }}
                 </div>
-            @endif
+            @enderror
+            
             
             <form action="/login" method="POST">
                 @csrf
