@@ -160,13 +160,25 @@ class DashboardController extends Controller
             
         $firewallIps = \App\Models\FirewallIp::latest()->get();
         
-        // Ambil setting Fail2ban (Buat default jika belum ada)
         $fail2ban = \App\Models\Fail2banSetting::firstOrCreate(
             ['id' => 1],
-            ['maxretry' => 3, 'bantime' => 3600, 'ignoreip' => '127.0.0.1']
+            ['maxretry' => 3, 'bantime' => 3600, 'ignoreip' => '127.0.0.0']
         );
 
-        return view('firewall', compact('menu_sidebar', 'activeSessions', 'firewallIps', 'fail2ban'));
+        // --- BACA DAFTAR IP YANG TERBANNED DARIPADA FAIL2BAN ---
+        $bannedIps = [];
+        $statusOutput = shell_exec("sudo fail2ban-client status laravel-auth 2>&1");
+
+        if ($statusOutput && str_contains($statusOutput, 'Banned IP list:')) {
+            // Mengambil baris "Banned IP list: 192.168.1.50 10.0.0.1 ..."
+            preg_match('/Banned IP list:\s*(.*)/', $statusOutput, $matches);
+            if (!empty($matches[1])) {
+                // Pecah string IP menjadi Array dan hilangkan spasi kosong
+                $bannedIps = array_filter(explode(' ', trim($matches[1])));
+            }
+        }
+
+        return view('firewall', compact('menu_sidebar', 'activeSessions', 'firewallIps', 'fail2ban', 'bannedIps'));
     }
 
     public function createArsip()
