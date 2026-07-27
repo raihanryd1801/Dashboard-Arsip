@@ -46,7 +46,7 @@
         <h5 class="py-3 text-center fw-bold text-white tracking-wide">DATA ARSIP MULTI COMPANY</h5>
         <div class="nav flex-column">
             <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/">Dashboard Utama</a>
-            <a class="nav-link active text-danger fw-bold" href="/firewall">🛡️ Firewall & Sesi</a>
+            <a class="nav-link active text-danger fw-bold" href="/firewall">Firewall & Sesi</a>
             <a class="nav-link {{ request()->is('converter') ? 'active' : '' }}" href="/converter">Image to PDF Converter</a>
             <a class="nav-link {{ request()->is('arsip') ? 'active' : '' }}" href="/arsip">Pusat Dokumen</a>
             <!-- TAMBAHAN MENU CONVERTER -->

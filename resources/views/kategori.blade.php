@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Master Kategori | NOC</title>
+    <title>Master Kategori</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     
@@ -28,12 +28,12 @@
         <h5 class="py-3 text-center fw-bold text-white tracking-wide">DATA ARSIP MULTI COMPANY</h5>
         <div class="nav flex-column">
             <a class="nav-link" href="/">Dashboard Utama</a>
-            <a class="nav-link" href="/firewall">🛡️ Firewall & Sesi</a>
+            <a class="nav-link" href="/firewall">Firewall & Sesi</a>
             <a class="nav-link" href="/converter">Image to PDF Converter</a>
             <a class="nav-link" href="/arsip">Pusat Dokumen</a>
             
             <!-- MENU MASTER KATEGORI AKTIF -->
-            <a class="nav-link active fw-bold text-white" href="/kategori">📁 Master Kategori</a>
+            <a class="nav-link active fw-bold text-white" href="/kategori">Master Kategori</a>
             
             <div class="mt-3 mb-2 ms-3 text-uppercase text-white-50" style="font-size: 0.75rem; font-weight: bold;">DATA ARSIP PERUSAHAAN</div>
             
@@ -50,7 +50,7 @@
                         <div class="ms-3 mt-2 border-start border-secondary ps-3 mb-3">
                             @foreach($kategorisMenu as $item)
                                 <a class="nav-link py-2 text-white-50" href="/arsip/{{ rawurlencode($pt) }}/{{ rawurlencode($item->kategori) }}" style="font-size:13px;">
-                                    📄 {{ $item->kategori }}
+                                    - {{ $item->kategori }}
                                 </a>
                             @endforeach
                         </div>
@@ -68,25 +68,27 @@
                 <h2 class="mb-0 fw-bold">Master <span class="text-primary">Kategori</span></h2>
             </div>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalProfil">⚙️ Pengaturan Akun</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalProfil">Pengaturan Akun</button>
                 <form action="/logout" method="POST" class="mb-0">@csrf <button class="btn btn-outline-danger btn-sm">Logout</button></form>
             </div>
         </div>
 
         @if(session('success'))
-            <div class="alert alert-success border-0 rounded-3 shadow-sm fw-bold">✅ {{ session('success') }}</div>
+            <div class="alert alert-success border-0 rounded-3 shadow-sm fw-bold">SUCCESS: {{ session('success') }}</div>
         @endif
-        @if($errors->any())
-            <div class="alert alert-danger border-0 rounded-3 shadow-sm fw-bold">⚠️ {{ $errors->first() }}</div>
+        
+        <!-- PENGAMBIL ALERT ERROR GAGAL HAPUS -->
+        @if(session('error'))
+            <div class="alert alert-danger border-0 rounded-3 shadow-sm fw-bold">RESTRICTED: {{ session('error') }}</div>
         @endif
-
+        
         <div class="row g-4 mb-4">
             <!-- FORM TAMBAH KATEGORI KIRI -->
             <div class="col-md-4">
                 <div class="card p-4 h-100 border-top border-primary border-4">
                     <div class="d-flex align-items-center gap-2 mb-3">
-                        <div class="bg-primary text-white rounded p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                            <span style="font-size: 1.2rem;">📁</span>
+                        <div class="bg-primary text-white rounded p-2 d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                            ADD
                         </div>
                         <h5 class="fw-bold mb-0 text-primary">Tambah Kategori</h5>
                     </div>
@@ -99,7 +101,7 @@
                             <label class="form-label small fw-bold">Nama Kategori Baru</label>
                             <input type="text" name="nama_kategori" class="form-control bg-light" placeholder="Contoh: KONTRAK KERJA" required autofocus>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">➕ Simpan Kategori</button>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">Simpan Kategori</button>
                     </form>
                 </div>
             </div>
@@ -107,7 +109,7 @@
             <!-- TABEL DAFTAR KATEGORI KANAN -->
             <div class="col-md-8">
                 <div class="card p-4 h-100">
-                    <h5 class="fw-bold mb-4">📑 Daftar Kategori Tersedia</h5>
+                    <h5 class="fw-bold mb-4">Daftar Kategori Tersedia</h5>
                     
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">

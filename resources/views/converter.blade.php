@@ -29,7 +29,7 @@
         <h5 class="py-3 text-center fw-bold text-white tracking-wide">DATA ARSIP MULTI COMPANY</h5>
         <div class="nav flex-column">
             <a class="nav-link" href="/">Dashboard Utama</a>
-            <a class="nav-link" href="/firewall">🛡️ Firewall & Sesi</a>
+            <a class="nav-link" href="/firewall">Firewall & Sesi</a>
             <a class="nav-link active" href="/converter">Image to PDF Converter</a>
             <a class="nav-link" href="/arsip">Pusat Dokumen</a> 
             

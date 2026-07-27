@@ -30,11 +30,11 @@
         <h5 class="py-3 text-center fw-bold text-white tracking-wide">DATA ARSIP MULTI COMPANY</h5>
         <div class="nav flex-column">
             <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/">Dashboard Utama</a>
-            <a class="nav-link" href="/firewall">🛡️ Firewall & Sesi</a>
+            <a class="nav-link" href="/firewall">Firewall & Sesi</a>
             <a class="nav-link {{ request()->is('converter') ? 'active' : '' }}" href="/converter">Image to PDF Converter</a>
             <a class="nav-link {{ request()->is('arsip') ? 'active' : '' }}" href="/arsip">Pusat Dokumen</a>
             
-            <a class="nav-link {{ request()->is('kategori') ? 'active' : '' }}" href="/kategori">📁 Master Kategori</a>
+            <a class="nav-link {{ request()->is('kategori') ? 'active' : '' }}" href="/kategori">Master Kategori</a>
             
             <div class="mt-3 mb-2 ms-3 text-uppercase text-white-50" style="font-size: 0.75rem; font-weight: bold;">DATA ARSIP PERUSAHAAN</div>
             

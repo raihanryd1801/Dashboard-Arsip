@@ -207,10 +207,21 @@ Route::middleware(['auth', IpFirewall::class])->group(function () {
         return back()->with('success', 'Kategori baru berhasil ditambahkan!');
     });
     
-    // 👇 PASTIKAN ADA /{id} DI BARIS INI 👇
+    // --- HAPUS MASTER KATEGORI DENGAN PROTEKSI DATA ---
     Route::delete('/kategori/{id}', function ($id) {
-        \App\Models\Kategori::findOrFail($id)->delete();
-        return back()->with('success', 'Kategori berhasil dihapus!');
+        $kategori = \App\Models\Kategori::findOrFail($id);
+        
+        // Cek apakah masih ada dokumen yang menggunakan kategori ini
+        $cekDokumen = \App\Models\Dokumen::where('kategori', $kategori->nama_kategori)->exists();
+
+        if ($cekDokumen) {
+            return back()->with('error', "Gagal! Data masih ada, Anda tidak dapat menghapus kategori '{$kategori->nama_kategori}' karena sedang digunakan oleh dokumen arsip.");
+        }
+
+        // Jika kosong/aman, hapus kategori
+        $kategori->delete();
+
+        return back()->with('success', 'Kategori berhasil dihapus dari sistem!');
     });
 
 });
