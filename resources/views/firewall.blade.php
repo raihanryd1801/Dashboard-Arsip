@@ -66,7 +66,7 @@
     <!-- KONTEN UTAMA -->
     <div class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0 fw-bold text-danger">🛡️ NOC Firewall & Active Sessions</h2>
+            <h2 class="mb-0 fw-bold text-danger">Firewall & Active Sessions</h2>
             <form action="/logout" method="POST" class="mb-0">@csrf <button class="btn btn-outline-danger btn-sm">Logout</button></form>
         </div>
 
@@ -78,7 +78,7 @@
             <!-- TABEL 1: SESSION MANAGER (TENDANG USER) -->
             <div class="col-md-7">
                 <div class="card p-4 h-100 border-start border-danger border-4">
-                    <h5 class="fw-bold mb-3 text-danger">🛑 Monitor & Drop Sesi Aktif</h5>
+                    <h5 class="fw-bold mb-3 text-danger">Monitor & Drop Sesi Aktif</h5>
                     <p class="small text-muted mb-3">Klik tombol "Drop" untuk menendang perangkat/user yang mencurigakan. Mereka harus login ulang.</p>
                     
                     <div class="table-responsive">
@@ -109,7 +109,7 @@
             <!-- TABEL 2: IP WHITELIST -->
             <div class="col-md-5">
                 <div class="card p-4 h-100 border-start border-success border-4">
-                    <h5 class="fw-bold mb-3 text-success">✅ IP Allow-List (Whitelist)</h5>
+                    <h5 class="fw-bold mb-3 text-success">IP Allow-List (Whitelist)</h5>
                     <p class="small text-danger fw-bold bg-danger-subtle p-2 rounded">PENTING: Jika daftar ini diisi, maka HANYA IP dalam daftar ini yang bisa membuka web. Pastikan IP Anda sendiri dimasukkan lebih dulu!</p>
                     
                     <form action="/firewall/allow" method="POST" class="mb-4 bg-light p-3 rounded">
@@ -146,40 +146,58 @@
                     </div>
                 </div>
             </div>
-            <!-- TABEL 3: KONFIGURASI FAIL2BAN -->
-            <div class="col-md-12">
-                <div class="card p-4 border-start border-warning border-4">
-                    <h5 class="fw-bold mb-3 text-warning text-dark">⚙️ Konfigurasi Keamanan Fail2ban (Brute-force Protection)</h5>
-                    <p class="small text-muted mb-4">Atur parameter otomatis pemblokiran IP jika ada pengunjung yang mencoba menebak password (gagal login berturut-turut).</p>
-                    
-                    <form action="/firewall/fail2ban" method="POST" class="row g-3 bg-light p-3 rounded">
-                        @csrf
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small">Max Retry (Maks Gagal)</label>
-                            <input type="number" name="maxretry" class="form-control" value="{{ $fail2ban->maxretry }}" required>
-                            <div class="form-text small">Batas maksimal salah password.</div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small">Ban Time (Lama Blokir)</label>
-                            <select name="bantime" class="form-select" required>
-                                <option value="600" {{ $fail2ban->bantime == 600 ? 'selected' : '' }}>10 Menit</option>
-                                <option value="3600" {{ $fail2ban->bantime == 3600 ? 'selected' : '' }}>1 Jam</option>
-                                <option value="86400" {{ $fail2ban->bantime == 86400 ? 'selected' : '' }}>1 Hari</option>
-                                <option value="-1" {{ $fail2ban->bantime == -1 ? 'selected' : '' }}>Permanen (-1)</option>
-                            </select>
-                            <div class="form-text small">Durasi IP dikurung.</div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold small">Ignore IP (IP Kebal Blokir)</label>
-                            <input type="text" name="ignoreip" class="form-control" value="{{ $fail2ban->ignoreip }}" placeholder="Contoh: 127.0.0.1 192.168.99.10">
-                            <div class="form-text small">Pisahkan dengan spasi. IP ini tidak akan pernah diblokir Fail2ban.</div>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-warning w-100 fw-bold">Update & Restart</button>
-                        </div>
-                    </form>
+            <!-- ROW BAWAH: FAIL2BAN & UNBAN -->
+            <div class="row g-4 mt-1">
+                <!-- TABEL 3: KONFIGURASI FAIL2BAN -->
+                <div class="col-md-8">
+                    <div class="card p-4 h-100 border-start border-warning border-4">
+                        <h5 class="fw-bold mb-3 text-warning text-dark">⚙️ Konfigurasi Keamanan Fail2ban (Brute-force)</h5>
+                        <p class="small text-muted mb-4">Atur parameter otomatis pemblokiran IP jika ada pengunjung yang mencoba menebak password.</p>
+                        
+                        <form action="/firewall/fail2ban" method="POST" class="row g-3 bg-light p-3 rounded">
+                            @csrf
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">Max Retry</label>
+                                <input type="number" name="maxretry" class="form-control" value="{{ $fail2ban->maxretry }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">Ban Time</label>
+                                <select name="bantime" class="form-select" required>
+                                    <option value="600" {{ $fail2ban->bantime == 600 ? 'selected' : '' }}>10 Menit</option>
+                                    <option value="3600" {{ $fail2ban->bantime == 3600 ? 'selected' : '' }}>1 Jam</option>
+                                    <option value="86400" {{ $fail2ban->bantime == 86400 ? 'selected' : '' }}>1 Hari</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small">Ignore IP (Kebal)</label>
+                                <input type="text" name="ignoreip" class="form-control" value="{{ $fail2ban->ignoreip }}" placeholder="127.0.0.0">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-warning w-100 fw-bold">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TABEL 4: UNBAN IP -->
+                <div class="col-md-4">
+                    <div class="card p-4 h-100 border-start border-info border-4">
+                        <h5 class="fw-bold mb-3 text-info text-dark">🔓 Lepas Blokir (Unban IP)</h5>
+                        <p class="small text-muted mb-3">Buka blokir IP rekan yang terlanjur ditendang oleh sistem karena salah password.</p>
+                        
+                        <form action="/firewall/unban" method="POST" class="bg-light p-3 rounded">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">IP Address yang Diblokir</label>
+                                <input type="text" name="ip_address" class="form-control form-control-sm" placeholder="Contoh: 192.168.99.100" required>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-info w-100 fw-bold text-white">Unban IP Sekarang</button>
+                        </form>
+                    </div>
                 </div>
             </div>
+            </div>
+            
         </div>
 
     </div>

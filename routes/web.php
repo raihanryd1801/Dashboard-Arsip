@@ -125,7 +125,7 @@ Route::middleware(['auth', IpFirewall::class])->group(function () {
         return abort(404, 'File tidak ditemukan di server.');
     })->where('filename', '.*');
 
-    // --- 12. UPDATE SETTING FAIL2BAN ---
+    // --- 9. UPDATE SETTING FAIL2BAN ---
     Route::post('/firewall/fail2ban', function (Request $request) {
         $request->validate([
             'maxretry' => 'required|numeric',
@@ -176,6 +176,27 @@ Route::middleware(['auth', IpFirewall::class])->group(function () {
         shell_exec("sudo systemctl restart fail2ban");
 
         return back()->with('success', 'Konfigurasi Fail2ban berhasil di-update dengan Port 8004 dan service telah di-restart!');
+    });
+    // --- 10. AKSI UNBAN IP FAIL2BAN ---
+    Route::post('/firewall/unban', function (Request $request) {
+        $request->validate([
+            'ip_address' => 'required|ip'
+        ]);
+
+        $ip = $request->ip_address;
+        
+        // Eksekusi perintah unban ke Fail2ban menggunakan escapeshellarg demi keamanan
+        // Pastikan www-data sudah diberi hak sudo untuk perintah fail2ban-client
+        $output = shell_exec("sudo fail2ban-client set laravel-auth unbanip " . escapeshellarg($ip));
+
+        // Pengecekan hasil sederhana
+        if (trim($output) == '1' || str_contains(strtolower($output), '1')) {
+            return back()->with('success', "Berhasil! IP {$ip} telah dilepas dari daftar blokir Fail2ban.");
+        } elseif (trim($output) == '0' || str_contains(strtolower($output), '0')) {
+            return back()->with('error', "IP {$ip} tidak ditemukan dalam daftar blokir saat ini.");
+        }
+
+        return back()->with('success', "Perintah unban untuk IP {$ip} telah dikirim ke server!");
     });
 
 });
