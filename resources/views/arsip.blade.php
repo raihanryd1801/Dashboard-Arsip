@@ -31,8 +31,10 @@
         <div class="nav flex-column">
             <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/">Dashboard Utama</a>
             <a class="nav-link" href="/firewall">🛡️ Firewall & Sesi</a>
-            <a class="nav-link {{ request()->is('arsip') ? 'active' : '' }}" href="/arsip">Pusat Dokumen</a>
             <a class="nav-link {{ request()->is('converter') ? 'active' : '' }}" href="/converter">Image to PDF Converter</a>
+            <a class="nav-link {{ request()->is('arsip') ? 'active' : '' }}" href="/arsip">Pusat Dokumen</a>
+            
+            <a class="nav-link {{ request()->is('kategori') ? 'active' : '' }}" href="/kategori">📁 Master Kategori</a>
             
             <div class="mt-3 mb-2 ms-3 text-uppercase text-white-50" style="font-size: 0.75rem; font-weight: bold;">DATA ARSIP PERUSAHAAN</div>
             
@@ -94,85 +96,93 @@
         @endif
 
         <div class="row mb-4">
-            <div class="col-md-{{ $page_title === 'Pusat Dokumen' ? '7' : '12' }}">
-                <div class="card p-4 h-100">
-                    <h5>Upload Dokumen Baru</h5>
+            <div class="col-md-{{ (!isset($active_pt) || $active_pt == '') ? '7' : '12' }}">
+                <div class="card p-4 h-100 border-top border-primary border-4">
+                    <h5 class="fw-bold text-primary">Upload Dokumen Baru</h5>
                     <form id="uploadForm" action="/upload-dokumen" method="POST" enctype="multipart/form-data" class="row g-3 mt-1">
                         @csrf
                         
-                        <!-- INPUT PERUSAHAAN (Bisa Pilih dari Datalist / Dropdown atau Ketik Manual, Tanpa Required Kaku) -->
-                        <!-- INPUT PERUSAHAAN (PILIH DARI LIST ATAU KETIK MANUAL) -->
-<div class="col-md-6">
-    <label class="form-label fw-bold">Nama Perusahaan (PT)</label>
-    
-    <div class="input-group">
-        <!-- 1. Dropdown untuk memilih PT yang sudah ada -->
-        <select id="selectPt" class="form-select" onchange="document.getElementById('inputPt').value = this.value;">
-            <option value="">-- Pilih dari Daftar PT --</option>
-            @if(isset($listPt))
-                @foreach($listPt as $pt)
-                    <option value="{{ $pt }}">{{ $pt }}</option>
-                @endforeach
-            @endif
-        </select>
-
-        <!-- 2. Input teks untuk ketik manual atau edit hasil pilihan dropdown -->
-        <input type="text" id="inputPt" name="perusahaan" class="form-control" placeholder="Atau ketik nama PT baru..." required>
-    </div>
-    <div class="form-text text-muted" style="font-size: 0.75rem;">Pilih dari dropdown di kiri, atau ketik langsung di kolom kanan jika PT baru.</div>
-</div>
-                        
-                        <!-- Input Kategori -->
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Kategori Dokumen</label>
-                            @if($page_title === 'Pusat Dokumen')
-                                <input class="form-control" list="kategoriOptions" name="kategori" placeholder="Pilih/Ketik Kategori..." required>
-                                <datalist id="kategoriOptions">
-                                    <option value="Berita Acara">
-                                    <option value="Invoice">
-                                    <option value="PKS">
-                                    <option value="Kwitansi">
-                                    <option value="Sertifikat">
-                                </datalist>
+                            <label class="form-label fw-bold small">Nama Perusahaan (PT)</label>
+                            @if(isset($active_pt) && $active_pt != '')
+                                <input type="text" class="form-control bg-light text-muted fw-bold" value="{{ $active_pt }}" disabled>
+                                <input type="hidden" name="perusahaan" value="{{ $active_pt }}">
                             @else
-                                <input type="text" name="kategori" class="form-control bg-light" value="{{ $page_title }}" readonly style="pointer-events: none;">
+                                <div class="input-group">
+                                    <select id="selectPt" class="form-select" onchange="document.getElementById('inputPt').value = this.value;">
+                                        <option value="">-- Pilih dari Daftar --</option>
+                                        @if(isset($listPt))
+                                            @foreach($listPt as $pt)
+                                                <option value="{{ $pt }}">{{ $pt }}</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                    <input type="text" id="inputPt" name="perusahaan" class="form-control" placeholder="Atau ketik nama PT baru..." required>
+                                </div>
+                            @endif
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Kategori Dokumen</label>
+                            @if(isset($active_kategori) && $active_kategori != '')
+                                <input type="text" class="form-control bg-light text-muted fw-bold" value="{{ $active_kategori }}" disabled>
+                                <input type="hidden" name="kategori" value="{{ $active_kategori }}">
+                            @else
+                                <select name="kategori" class="form-select" required>
+                                    <option value="">-- Pilih Kategori --</option>
+                                    @if(isset($listKategoriMaster))
+                                        @foreach($listKategoriMaster as $kat)
+                                            <option value="{{ $kat->nama_kategori }}">{{ $kat->nama_kategori }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
                             @endif
                         </div>
 
-                        <!-- Baris Input File dkk -->
                         <div class="col-md-4">
-                            <label class="form-label fw-bold">Judul Dokumen</label>
+                            <label class="form-label fw-bold small">Judul Dokumen</label>
                             <input type="text" name="judul" class="form-control" placeholder="Judul Dokumen" required>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold">Tanggal Dokumen</label>
+                            <label class="form-label fw-bold small">Tanggal Dokumen</label>
                             <input type="text" id="tanggalDokumen" name="tanggal_dokumen" class="form-control" placeholder="YYYY-MM-DD" required>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label fw-bold">File Dokumen</label>
-                            <input type="file" id="fileInput" name="file" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" required>
+                            <label class="form-label fw-bold small">File Dokumen</label>
+                            <input type="file" id="fileInput" name="file" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" required>
                         </div>
-                        <div class="col-md-12 mt-2">
-                            <button type="submit" class="btn btn-dark w-100">Upload Dokumen</button>
+                        <div class="col-md-12 mt-3">
+                            <button type="submit" class="btn btn-primary w-100 fw-bold">Upload Dokumen Sekarang</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            @if($page_title === 'Pusat Dokumen')
+            @if(!isset($active_pt) || $active_pt == '')
             <div class="col-md-5">
                 <div class="card p-4 h-100">
-                    <h6>Statistik Jumlah Dokumen</h6>
+                    <h6 class="fw-bold">Statistik Jumlah Dokumen</h6>
                     <div style="height: 150px; width: 100%;"><canvas id="barChartArsip"></canvas></div>
                 </div>
             </div>
             @endif
         </div>
 
-        <!-- Filter Pencarian -->
-        <div class="d-flex gap-2 mb-3">
-            <input type="text" id="searchJudul" class="form-control" placeholder="Cari Judul Dokumen..." style="max-width: 300px;">
-            <select id="searchMonth" class="form-select" style="width: 150px;">
+        <!-- Filter Pencarian & Kategori -->
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <input type="text" id="searchJudul" class="form-control" placeholder="Cari Judul Dokumen..." style="max-width: 250px;">
+            
+            <!-- FILTER KATEGORI BARU -->
+            <select id="searchKategori" class="form-select" style="max-width: 200px;">
+                <option value="">All Kategori</option>
+                @if(isset($listKategoriMaster))
+                    @foreach($listKategoriMaster as $kat)
+                        <option value="{{ strtolower($kat->nama_kategori) }}">{{ $kat->nama_kategori }}</option>
+                    @endforeach
+                @endif
+            </select>
+
+            <select id="searchMonth" class="form-select" style="width: 140px;">
                 <option value="">All Month</option>
                 <option value="01">Januari</option>
                 <option value="02">Februari</option>
@@ -187,7 +197,7 @@
                 <option value="11">November</option>
                 <option value="12">Desember</option>
             </select>
-            <select id="searchYear" class="form-select" style="width: 120px;">
+            <select id="searchYear" class="form-select" style="width: 110px;">
                 <option value="">All Years</option>
                 @for($i = date('Y'); $i >= 2020; $i--)
                     <option value="{{ $i }}">{{ $i }}</option>
@@ -202,13 +212,15 @@
                 </thead>
                 <tbody id="tableBody">
                     @forelse($dokumen as $dok)
-                    @php $tgl_dok = $dok->tanggal_dokumen ? $dok->tanggal_dokumen : $dok->created_at->format('Y-m-d'); @endphp
-                    <tr data-date="{{ $tgl_dok }}">
+                    @php 
+                        $tgl_dok = $dok->tanggal_dokumen ? $dok->tanggal_dokumen : $dok->created_at->format('Y-m-d'); 
+                    @endphp
+                    <tr data-date="{{ $tgl_dok }}" data-kategori="{{ strtolower(trim($dok->kategori)) }}">
                         <td>
                             <span class="badge bg-dark">{{ $dok->perusahaan }}</span><br>
                             <span class="badge bg-light text-dark border mt-1">{{ $dok->kategori }}</span>
                         </td>
-                        <td>{{ $dok->judul }}</td>
+                        <td class="fw-bold text-primary">{{ $dok->judul }}</td>
                         <td>
                             <strong>{{ date('d M Y', strtotime($tgl_dok)) }}</strong><br>
                             <small class="text-muted" style="font-size: 0.75rem;">Diunggah: {{ $dok->created_at->format('d/m/Y') }}</small>
@@ -229,12 +241,12 @@
                             
                             <form action="/dokumen/{{ $dok->id }}" method="POST" class="d-inline">
                                 @csrf @method('DELETE')
-                                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Yakin hapus?')">Hapus</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Yakin hapus dokumen ini?')">Hapus</button>
                             </form>
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" class="text-center text-muted">Belum ada dokumen di kategori ini.</td></tr>
+                    <tr><td colspan="4" class="text-center text-muted py-4">Belum ada dokumen di kategori ini.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -290,13 +302,14 @@
 
     flatpickr("#tanggalDokumen", { allowInput: true, dateFormat: "Y-m-d" });
 
-    @if($page_title === 'Pusat Dokumen')
-        const ctxBar = document.getElementById('barChartArsip').getContext('2d');
-        const chartLabels = {!! json_encode($chart_labels) !!};
-        const chartDatasets = {!! json_encode($chart_datasets) !!};
+    // Render Grafik Chart.js
+    const ctxBar = document.getElementById('barChartArsip');
+    if(ctxBar) {
+        const chartLabels = {!! json_encode($chart_labels ?? []) !!};
+        const chartDatasets = {!! json_encode($chart_datasets ?? []) !!};
         
-        if (chartLabels.length > 0) {
-            new Chart(ctxBar, { 
+        if (chartLabels.length > 0 && chartDatasets.length > 0) {
+            new Chart(ctxBar.getContext('2d'), { 
                 type: 'bar', 
                 data: { 
                     labels: chartLabels, 
@@ -319,30 +332,45 @@
                 } 
             });
         }
-    @endif
+    }
 
     document.getElementById('fileInput').addEventListener('change', function() {
         const file = this.files[0];
         if (file && file.size > 20 * 1024 * 1024) { alert('File terlalu besar! Maksimal ukuran adalah 20MB.'); this.value = ''; }
     });
 
+    // Fungsi Filter Tabel (Pencarian Judul + Kategori + Bulan + Tahun)
     function filterTable() {
         let text = document.getElementById('searchJudul').value.toLowerCase();
+        let selectedKat = document.getElementById('searchKategori').value.toLowerCase();
         let month = document.getElementById('searchMonth').value;
         let year = document.getElementById('searchYear').value;
         let rows = document.querySelectorAll('#tableBody tr');
 
         rows.forEach(row => {
-            if(row.children.length === 1) return; 
+            if(row.children.length === 1) return; // Lewati baris "kosong"
+            
             let rowText = row.innerText.toLowerCase();
-            let rowDate = row.getAttribute('data-date'); 
+            let rowKat = row.getAttribute('data-kategori') || "";
+            let rowDate = row.getAttribute('data-date') || ""; 
             let rowYear = rowDate.substring(0, 4);
             let rowMonth = rowDate.substring(5, 7);
             
-            row.style.display = (rowText.includes(text) && (month === "" || rowMonth === month) && (year === "" || rowYear === year)) ? "" : "none";
+            let matchJudul = rowText.includes(text);
+            let matchKat = (selectedKat === "" || rowKat === selectedKat);
+            let matchMonth = (month === "" || rowMonth === month);
+            let matchYear = (year === "" || rowYear === year);
+
+            if (matchJudul && matchKat && matchMonth && matchYear) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
         });
     }
+
     document.getElementById('searchJudul').addEventListener('keyup', filterTable);
+    document.getElementById('searchKategori').addEventListener('change', filterTable);
     document.getElementById('searchMonth').addEventListener('change', filterTable);
     document.getElementById('searchYear').addEventListener('change', filterTable);
 </script>

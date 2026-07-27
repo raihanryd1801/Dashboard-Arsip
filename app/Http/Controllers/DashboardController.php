@@ -7,10 +7,13 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Laporan;
 use App\Models\Dokumen;
 use App\Models\ActivityLog;
+use App\Models\Kategori;
+use App\Models\FirewallIp;
+use App\Models\Fail2banSetting;
 
 class DashboardController extends Controller
 {
-    // --- FUNGSI BARU: Mengambil Sidebar Multi-Company ---
+    // --- MENGAMBIL SIDEBAR MULTI-COMPANY ---
     public function getMenuSidebar()
     {
         return Dokumen::select('perusahaan', 'kategori')
@@ -45,10 +48,8 @@ class DashboardController extends Controller
             ->groupBy('perusahaan')
             ->get();
         
-
         $ipData = $activeSessions->groupBy('ip_address')->map->count();
 
-        // PANGGIL MENU SIDEBAR BARU
         $menu_sidebar = $this->getMenuSidebar();
 
         return view('dashboard', [
@@ -74,7 +75,6 @@ class DashboardController extends Controller
     }
 
     // --- HALAMAN PUSAT DOKUMEN ---
-    // --- HALAMAN PUSAT DOKUMEN ---
     public function arsip(Request $request)
     {
         $search = $request->input('search');
@@ -88,9 +88,45 @@ class DashboardController extends Controller
 
         $listPt = Dokumen::select('perusahaan')->distinct()->pluck('perusahaan');
         $menu_sidebar = $this->getMenuSidebar();
-        $page_title = 'Pusat Dokumen Arsip'; // <--- Tambahkan variabel ini agar view tidak error
+        $page_title = 'Pusat Dokumen Arsip'; 
+        
+        $listKategoriMaster = Kategori::orderBy('nama_kategori', 'asc')->get(); 
 
-        return view('arsip', compact('dokumen', 'listPt', 'menu_sidebar', 'search', 'page_title'));
+        // REKAP DATA GRAFIK
+        $perusahaanList = Dokumen::select('perusahaan')->distinct()->pluck('perusahaan');
+        $kategoriList = Dokumen::select('kategori')->distinct()->pluck('kategori');
+
+        $datasets = [];
+        $warnaKategori = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#0ea5e9'];
+        $indexWarna = 0;
+
+        foreach ($kategoriList as $kat) {
+            $dataPerPt = [];
+            foreach ($perusahaanList as $pt) {
+                $jumlah = Dokumen::where('perusahaan', $pt)->where('kategori', $kat)->count();
+                $dataPerPt[] = $jumlah;
+            }
+
+            $datasets[] = [
+                'label' => $kat,
+                'data' => $dataPerPt,
+                'backgroundColor' => $warnaKategori[$indexWarna % count($warnaKategori)],
+                'borderRadius' => 4
+            ];
+            $indexWarna++;
+        }
+
+        return view('arsip', compact(
+            'dokumen', 
+            'listPt', 
+            'menu_sidebar', 
+            'search', 
+            'page_title', 
+            'listKategoriMaster'
+        ) + [
+            'chart_labels' => $perusahaanList,
+            'chart_datasets' => $datasets
+        ]);
     }
 
     // --- HALAMAN ARSIP SPESIFIK PT & KATEGORI ---
@@ -99,14 +135,13 @@ class DashboardController extends Controller
         return $this->tampilkanArsip($kategori, $kategori, $perusahaan);
     }
 
-    // --- FUNGSI BANTUAN TAMPILKAN ARSIP ---
     private function tampilkanArsip($title, $kategori, $perusahaan)
     {
         if ($kategori != '' && $perusahaan != '') {
             $dokumen = Dokumen::where('perusahaan', $perusahaan)
-                              ->where('kategori', $kategori)
-                              ->latest()
-                              ->get();
+                             ->where('kategori', $kategori)
+                             ->latest()
+                             ->get();
         } else {
             $dokumen = Dokumen::latest()->get();
         }
@@ -135,45 +170,46 @@ class DashboardController extends Controller
         }
 
         $menu_sidebar = $this->getMenuSidebar();
-        $listPt = $perusahaanList; // Ditambahkan agar arsip.blade.php tidak error $listPt
+        $listPt = $perusahaanList; 
+        $listKategoriMaster = Kategori::orderBy('nama_kategori', 'asc')->get();
 
         return view('arsip', [
-            'dokumen'       => $dokumen,
-            'page_title'    => $title,
-            'active_pt'     => $perusahaan,
-            'chart_labels'  => $perusahaanList,
-            'chart_datasets'=> $datasets,
-            'menu_sidebar'  => $menu_sidebar,
-            'listPt'        => $listPt
+            'dokumen'            => $dokumen,
+            'page_title'         => $title,
+            'active_pt'          => $perusahaan,
+            'active_kategori'    => $kategori,
+            'chart_labels'       => $perusahaanList,
+            'chart_datasets'     => $datasets,
+            'menu_sidebar'       => $menu_sidebar,
+            'listPt'             => $listPt,
+            'listKategoriMaster' => $listKategoriMaster
         ]);
     }
 
+    // --- HALAMAN FIREWALL & FAIL2BAN ---
     public function firewall()
     {
         $menu_sidebar = $this->getMenuSidebar();
         
-        $activeSessions = \Illuminate\Support\Facades\DB::table('sessions')
+        $activeSessions = DB::table('sessions')
             ->leftJoin('users', 'sessions.user_id', '=', 'users.id')
             ->select('sessions.id as session_id', 'sessions.ip_address', 'sessions.last_activity', 'users.name')
             ->orderBy('sessions.last_activity', 'desc')
             ->get();
             
-        $firewallIps = \App\Models\FirewallIp::latest()->get();
+        $firewallIps = FirewallIp::latest()->get();
         
-        $fail2ban = \App\Models\Fail2banSetting::firstOrCreate(
+        $fail2ban = Fail2banSetting::firstOrCreate(
             ['id' => 1],
             ['maxretry' => 3, 'bantime' => 3600, 'ignoreip' => '127.0.0.0']
         );
 
-        // --- BACA DAFTAR IP YANG TERBANNED DARIPADA FAIL2BAN ---
         $bannedIps = [];
         $statusOutput = shell_exec("sudo fail2ban-client status laravel-auth 2>&1");
 
         if ($statusOutput && str_contains($statusOutput, 'Banned IP list:')) {
-            // Mengambil baris "Banned IP list: 192.168.1.50 10.0.0.1 ..."
             preg_match('/Banned IP list:\s*(.*)/', $statusOutput, $matches);
             if (!empty($matches[1])) {
-                // Pecah string IP menjadi Array dan hilangkan spasi kosong
                 $bannedIps = array_filter(explode(' ', trim($matches[1])));
             }
         }
@@ -183,9 +219,43 @@ class DashboardController extends Controller
 
     public function createArsip()
     {
-        // Menggunakan model Dokumen (bukan Arsip) agar sinkron dengan database
         $listPt = Dokumen::select('perusahaan')->distinct()->pluck('perusahaan');
-        
         return view('arsip.create', compact('listPt'));
+    }
+
+    // --- MASTER KATEGORI ---
+    public function kategori()
+    {
+        $menu_sidebar = $this->getMenuSidebar();
+        
+        // Bersihkan data kosong/siluman
+        Kategori::whereNull('nama_kategori')
+            ->orWhere('nama_kategori', '')
+            ->orWhere('nama_kategori', ' ')
+            ->delete();
+
+        // Auto-sync kategori dari dokumen lama
+        $kategoriLama = Dokumen::select('kategori')
+                        ->whereNotNull('kategori')
+                        ->where('kategori', '!=', '')
+                        ->distinct()
+                        ->pluck('kategori');
+                        
+        foreach ($kategoriLama as $katLama) {
+            $namaClean = trim($katLama);
+            if (!empty($namaClean)) {
+                try {
+                    Kategori::firstOrCreate([
+                        'nama_kategori' => $namaClean
+                    ]);
+                } catch (\Exception $e) {
+                    // Abaikan jika duplikat
+                }
+            }
+        }
+
+        $kategoris = Kategori::orderBy('nama_kategori', 'asc')->get();
+        
+        return view('kategori', compact('menu_sidebar', 'kategoris'));
     }
 }

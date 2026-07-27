@@ -198,5 +198,19 @@ Route::middleware(['auth', IpFirewall::class])->group(function () {
 
         return back()->with('success', "Perintah unban untuk IP {$ip} telah dikirim ke server!");
     });
+    // --- MENU MASTER KATEGORI ---
+    Route::get('/kategori', [DashboardController::class, 'kategori']);
+    
+    Route::post('/kategori', function (Request $request) {
+        $request->validate(['nama_kategori' => 'required|string|unique:kategoris,nama_kategori']);
+        \App\Models\Kategori::create(['nama_kategori' => $request->nama_kategori]);
+        return back()->with('success', 'Kategori baru berhasil ditambahkan!');
+    });
+    
+    // 👇 PASTIKAN ADA /{id} DI BARIS INI 👇
+    Route::delete('/kategori/{id}', function ($id) {
+        \App\Models\Kategori::findOrFail($id)->delete();
+        return back()->with('success', 'Kategori berhasil dihapus!');
+    });
 
 });

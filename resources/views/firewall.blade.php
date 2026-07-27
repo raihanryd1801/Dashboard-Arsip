@@ -47,9 +47,10 @@
         <div class="nav flex-column">
             <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/">Dashboard Utama</a>
             <a class="nav-link active text-danger fw-bold" href="/firewall">🛡️ Firewall & Sesi</a>
+            <a class="nav-link {{ request()->is('converter') ? 'active' : '' }}" href="/converter">Image to PDF Converter</a>
             <a class="nav-link {{ request()->is('arsip') ? 'active' : '' }}" href="/arsip">Pusat Dokumen</a>
             <!-- TAMBAHAN MENU CONVERTER -->
-            <a class="nav-link {{ request()->is('converter') ? 'active' : '' }}" href="/converter">Image to PDF Converter</a>
+            
             <!-- MENU MULTI-COMPANY SIDEBAR -->
             <div class="mt-3 mb-2 ms-3 text-uppercase text-white-50" style="font-size: 0.75rem; font-weight: bold;">DATA ARSIP PERUSAHAAN</div>
             
